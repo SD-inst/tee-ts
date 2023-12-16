@@ -1,0 +1,12 @@
+TTS
+fastapi
+uvicorn[standard]
+fairseq==0.12.2
+faiss-cpu==1.7.3
+praat-parselmouth>=0.4.2
+pyworld==0.3.2
+torchcrepe==0.0.22
+av
+tensorboardX
+scipy
+pydantic
