@@ -1,49 +1,37 @@
-import {
-    Dispatch,
-    SetStateAction,
-    createContext,
-    useContext,
-    useState,
-} from 'react';
+import { createContext, useContext, useState } from 'react';
+
+type params = {
+    text: string;
+    batch_size: number;
+    RVC: boolean;
+    model: string;
+    sample: string;
+    audios: string[];
+    language: string;
+};
 
 type value = {
-    text: string;
-    setText: Dispatch<SetStateAction<string>>;
-    RVC: boolean;
-    setRVC: Dispatch<SetStateAction<boolean>>;
-    audios: string[];
-    setAudios: Dispatch<SetStateAction<string[]>>;
-    samples: number;
-    setSamples: Dispatch<SetStateAction<number>>;
+    genParams: Partial<params>;
+    setGenParams: (p: Partial<params>) => void;
 };
 
 const GenerationContext = createContext<value>({
-    text: '',
-    setText: () => {},
-    RVC: true,
-    setRVC: () => {},
-    audios: [] as string[],
-    setAudios: () => {},
-    samples: 1,
-    setSamples: () => {},
+    genParams: {},
+    setGenParams: (_) => {},
 });
 
 export const GenerationContextProvider = (props: any) => {
-    const [text, setText] = useState('');
-    const [RVC, setRVC] = useState(true);
-    const [audios, setAudios] = useState<string[]>([]);
-    const [samples, setSamples] = useState(1);
+    const [genParams, setGenParams] = useState({
+        RVC: true,
+        batch_size: 1,
+        language: 'en',
+    });
     return (
         <GenerationContext.Provider
             value={{
-                text,
-                setText,
-                RVC,
-                setRVC,
-                audios,
-                setAudios,
-                samples,
-                setSamples,
+                genParams,
+                setGenParams: (p: Partial<params>) =>
+                    setGenParams((params) => ({ ...params, ...p })),
             }}
         >
             {props.children}

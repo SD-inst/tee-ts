@@ -1,25 +1,31 @@
+import asyncio
 from io import BytesIO
 import os
+import pathlib
 import tempfile
 from TTS.utils.manage import ModelManager
 from TTS.utils.synthesizer import Synthesizer
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, Response
 import numpy as np
 from pydantic import BaseModel
 import scipy
 from infer.modules.vc.modules import VC
 from configs.config import Config
+from pathvalidate import validate_filename, ValidationError
 
 app = FastAPI()
 
+genLock = asyncio.Lock()
 s: Synthesizer = None
 rvc_c = Config()
 rvc = VC(rvc_c)
 
 class GenerateRequest(BaseModel):
     text: str
+    sample: str
+    model: str
     language: str = "en"
     rvc: bool = True
     index: float = 0.75
@@ -41,33 +47,77 @@ def convert_wav(wav, sample_rate, path=None):
 
 @app.post("/api/generate")
 async def generate(req: GenerateRequest):
-    wav = s.tts(req.text, speaker_wav="me2/nortl_relationship_05_h_S_INT_229376.wav", speaker_name=None, language_name=req.language)
-    wav = np.array(wav)
-    if not req.rvc:
-        return StreamingResponse(content=convert_wav(wav, s.output_sample_rate))
+    try:
+        validate_filename(req.model)
+        validate_filename(req.sample)
+    except ValidationError:
+        return Response("Invalid model or sample name", 400)
 
-    f = tempfile.NamedTemporaryFile(suffix=".wav")
-    convert_wav(wav, s.output_sample_rate, f.name)
+    async with genLock:
+        root = os.getenv('weight_root')
+        wav = s.tts(req.text, speaker_wav=os.path.join(root, req.model, "samples", req.sample), speaker_name=None, language_name=req.language)
+        wav = np.array(wav)
+        if not req.rvc:
+            return StreamingResponse(content=convert_wav(wav, s.output_sample_rate))
 
-    rvc.get_vc("Tali/model.pth")
-    _, result = rvc.vc_single(
-        0,
-        f.name,
-        0,
-        None,
-        "rmvpe",
-        "/mnt/2Tb/tts/assets/weights/Tali/model.index",
-        None,
-        req.index,
-        req.filter_radius,
-        req.resample,
-        req.rms_mix_rate,
-        req.protect
-    )
+        f = tempfile.NamedTemporaryFile(suffix=".wav")
+        convert_wav(wav, s.output_sample_rate, f.name)
+        index = os.path.join(root, req.model, "model.index")
+        if not pathlib.Path(index).exists():
+            index = None
+
+        rvc.get_vc(f"{req.model}/model.pth")
+        _, result = rvc.vc_single(
+            0,
+            f.name,
+            0,
+            None,
+            "rmvpe",
+            index,
+            None,
+            req.index,
+            req.filter_radius,
+            req.resample,
+            req.rms_mix_rate,
+            req.protect
+        )
+        f.close()
+        return StreamingResponse(
+            content=convert_wav(result[1], result[0])
+        )
+
+class Model(BaseModel):
+    name: str
+    samples: list[str]
+
+@app.get("/api/models")
+def list_models(filter: str = '') -> list[Model]:
+    root = os.getenv("weight_root")
+    model_dirs = os.listdir(root)
+    result = []
+    filter = filter.lower()
+    for d in model_dirs:
+        p = pathlib.Path(os.path.join(root, d))
+        if not p.is_dir():
+            continue
+        if d.lower().count(filter) == 0:
+            continue
+        model = Model(name=d, samples=[])
+        if p.joinpath("samples").is_dir():
+            samples = os.listdir(os.path.join(root, d, "samples"))
+            model.samples = samples
+            result.append(model)
+        elif filter:
+            result.append(model)
+
+    return result
+
+@app.get("/api/play_sample")
+def play_sample(model: str, sample: str):
+    f = open(f"{os.getenv('weight_root')}/{model}/samples/{sample}", "rb")
+    c = f.read()
     f.close()
-    return StreamingResponse(
-        content=convert_wav(result[1], result[0])
-    )
+    return Response(content=c)
 
 manager = ModelManager()
 model_path, _, _ = manager.download_model("tts_models/multilingual/multi-dataset/xtts_v2")

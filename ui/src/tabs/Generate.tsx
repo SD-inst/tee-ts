@@ -4,26 +4,59 @@ import {
     Button,
     Checkbox,
     CircularProgress,
+    FormControl,
     FormControlLabel,
+    InputLabel,
+    MenuItem,
     Paper,
+    Select,
     TextField,
     Typography,
 } from '@mui/material';
 import { useMutation } from '@tanstack/react-query';
 import { apiUrl } from '../config';
 import { useGenerationContext } from '../contexts/GenerationContext';
+import { Link } from 'react-router-dom';
+
+const languages = [
+    ['en', 'English'],
+    ['de', 'German'],
+    ['es', 'Spanish'],
+    ['ru', 'Russian'],
+    ['pl', 'Polish'],
+    ['fr', 'French'],
+    ['it', 'Italian'],
+    ['pt', 'Portuguese'],
+    ['tr', 'Turkish'],
+    ['nl', 'Dutch'],
+    ['cs', 'Czech'],
+    ['ar', 'Arabic'],
+    ['zh-cn', 'Chinese'],
+    ['ja', 'Japanese'],
+    ['hu', 'Hungarian'],
+    ['ko', 'Korean'],
+    ['hi', 'Hindi'],
+];
+
+const Title = () => {
+    const { genParams } = useGenerationContext();
+    if (!genParams.model || !genParams.sample) {
+        return (
+            <Typography variant='h5'>
+                Select the model and sample at the{' '}
+                <Link to={'/models'}>models tab</Link>
+            </Typography>
+        );
+    }
+    return (
+        <Typography variant='h5'>
+            Model: {genParams.model}, sample: {genParams.sample}
+        </Typography>
+    );
+};
 
 export const Generate = () => {
-    const {
-        text,
-        setText,
-        RVC,
-        setRVC,
-        samples,
-        setSamples,
-        audios,
-        setAudios,
-    } = useGenerationContext();
+    const { genParams, setGenParams } = useGenerationContext();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: () => {
             const headers = new Headers();
@@ -31,17 +64,25 @@ export const Generate = () => {
             return fetch(apiUrl + '/generate', {
                 method: 'POST',
                 headers,
-                body: JSON.stringify({ text, rvc: RVC }),
+                body: JSON.stringify({
+                    text: genParams.text,
+                    rvc: genParams.RVC,
+                    model: genParams.model,
+                    sample: genParams.sample,
+                    language: genParams.language,
+                }),
             });
         },
         onSuccess: async (data) => {
             const blobURL = URL.createObjectURL(await data.blob());
-            setAudios((a) => a.concat([blobURL]));
+            setGenParams({
+                audios: genParams.audios?.concat([blobURL]),
+            });
         },
     });
     const handleGenerate = async () => {
-        setAudios([]);
-        for (let i = 0; i < samples; i++) {
+        setGenParams({ audios: [] });
+        for (let i = 0; i < (genParams.batch_size || 0); i++) {
             await mutateAsync();
         }
     };
@@ -58,6 +99,7 @@ export const Generate = () => {
                 <Typography variant='h3' sx={{ alignSelf: 'center' }}>
                     Generate speech
                 </Typography>
+                <Title />
                 <Box
                     sx={{
                         display: 'flex',
@@ -70,12 +112,34 @@ export const Generate = () => {
                         placeholder='Text'
                         margin='dense'
                         size='small'
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
+                        value={genParams.text}
+                        onChange={(e) => setGenParams({ text: e.target.value })}
                         fullWidth
                         multiline
                     />
-                    <Button onClick={handleGenerate} size='small'>
+                    <FormControl sx={{ width: 150 }}>
+                        <InputLabel>Language</InputLabel>
+                        <Select
+                            label='language'
+                            size='small'
+                            margin='dense'
+                            value={genParams.language}
+                            onChange={(e) =>
+                                setGenParams({ language: e.target.value })
+                            }
+                        >
+                            {languages.map(([code, name]) => (
+                                <MenuItem value={code} key={code}>
+                                    {name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <Button
+                        onClick={handleGenerate}
+                        size='small'
+                        disabled={!genParams.model || !genParams.sample}
+                    >
                         <Send />
                     </Button>
                 </Box>
@@ -83,8 +147,10 @@ export const Generate = () => {
                     <FormControlLabel
                         control={
                             <Checkbox
-                                onChange={(e) => setRVC(e.target.checked)}
-                                checked={RVC}
+                                onChange={(e) =>
+                                    setGenParams({ RVC: e.target.checked })
+                                }
+                                checked={genParams.RVC}
                             />
                         }
                         label='Use RVC'
@@ -96,17 +162,17 @@ export const Generate = () => {
                                 inputProps={{ min: 1, max: 10 }}
                                 size='small'
                                 sx={{ mr: 1 }}
-                                value={samples}
+                                value={genParams.batch_size}
                                 onChange={(e) =>
-                                    setSamples(
-                                        Math.max(
+                                    setGenParams({
+                                        batch_size: Math.max(
                                             0,
                                             Math.min(
                                                 10,
                                                 parseInt(e.target.value)
                                             )
-                                        )
-                                    )
+                                        ),
+                                    })
                                 }
                             />
                         }
@@ -121,8 +187,8 @@ export const Generate = () => {
                         flexWrap: 'wrap',
                     }}
                 >
-                    {audios.map((src) => (
-                        <audio src={src} controls />
+                    {genParams.audios?.map((src) => (
+                        <audio src={src} controls key={src} />
                     ))}
                     {isPending && <CircularProgress />}
                 </Box>

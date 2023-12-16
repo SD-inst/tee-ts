@@ -6,7 +6,7 @@ export default defineConfig({
     base: './',
     server: {
         proxy: {
-            '/tts/api': {
+            '/api': {
                 target: 'http://localhost:8000',
                 rewrite: (path) => path.replace(/^\/tts/, ''),
             },

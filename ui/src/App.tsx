@@ -6,7 +6,7 @@ import {
     createTheme,
     useMediaQuery,
 } from '@mui/material';
-import { Route, Routes, useMatch, useNavigate } from 'react-router';
+import { Navigate, Route, Routes, useMatch, useNavigate } from 'react-router';
 import './App.css';
 import { Generate } from './tabs/Generate';
 import { Models } from './tabs/Models';
@@ -34,6 +34,10 @@ function App() {
                         <Tab label='Models' value='models' />
                     </Tabs>
                     <Routes>
+                        <Route
+                            path='/'
+                            element={<Navigate to='gen' replace />}
+                        />
                         <Route path='gen' element={<Generate />} />
                         <Route path='models' element={<Models />} />
                     </Routes>

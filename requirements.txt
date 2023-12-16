@@ -10,3 +10,4 @@ av
 tensorboardX
 scipy
 pydantic
+pathvalidate
