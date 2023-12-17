@@ -11,6 +11,7 @@ import {
     MenuItem,
     Paper,
     Select,
+    Slider,
     TextField,
     Typography,
 } from '@mui/material';
@@ -157,31 +158,39 @@ export const Generate = () => {
                         }
                         label='Use RVC'
                     />
-                    <FormControlLabel
-                        control={
-                            <TextField
-                                type='number'
-                                inputProps={{ min: 1, max: 10 }}
-                                size='small'
-                                sx={{ mr: 1 }}
-                                value={genParams.batch_size}
-                                onChange={(e) =>
-                                    setGenParams({
-                                        batch_size: Math.max(
-                                            0,
-                                            Math.min(
-                                                10,
-                                                parseInt(e.target.value)
-                                            )
-                                        ),
-                                    })
-                                }
-                            />
-                        }
-                        label='Number of samples'
-                    />
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            width: '50%',
+                        }}
+                    >
+                        <TextField
+                            type='number'
+                            inputProps={{ min: 1, max: 10 }}
+                            size='small'
+                            sx={{ mr: 1, width: 100 }}
+                            value={genParams.batch_size}
+                            onChange={(e) =>
+                                setGenParams({
+                                    batch_size: Math.max(
+                                        0,
+                                        Math.min(10, parseInt(e.target.value))
+                                    ),
+                                })
+                            }
+                            label='Batch'
+                        />
+                        <Slider
+                            value={genParams.batch_size}
+                            min={1}
+                            max={10}
+                            onChange={(_, v) =>
+                                setGenParams({ batch_size: v as number })
+                            }
+                        />
+                    </Box>
                 </Grid>
-                <Grid container sx={{mt: 2}}>
+                <Grid container sx={{ mt: 2 }}>
                     {genParams.audios?.map((src) => (
                         <audio src={src} controls key={src} />
                     ))}
