@@ -1,10 +1,9 @@
 import { Upload } from '@mui/icons-material';
-import { Box, Button, Container, Grid, Typography } from '@mui/material';
+import { Button, Container, Typography } from '@mui/material';
 
 export const FileUpload = ({
     onChange,
     fileSelected,
-    ...props
 }: {
     onChange: (e: File) => void;
     fileSelected?: string;
