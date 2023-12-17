@@ -36,7 +36,7 @@ function App() {
                     <Routes>
                         <Route
                             path='/'
-                            element={<Navigate to='gen' replace />}
+                            element={<Navigate to='models' replace />}
                         />
                         <Route path='gen' element={<Generate />} />
                         <Route path='models' element={<Models />} />

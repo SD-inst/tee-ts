@@ -58,7 +58,7 @@ async def generate(req: GenerateRequest):
         wav = s.tts(req.text, speaker_wav=os.path.join(root, req.model, "samples", req.sample), speaker_name=None, language_name=req.language)
         wav = np.array(wav)
         if not req.rvc:
-            return StreamingResponse(content=convert_wav(wav, s.output_sample_rate))
+            return StreamingResponse(content=convert_wav(wav, s.output_sample_rate), media_type="audio/wav")
 
         f = tempfile.NamedTemporaryFile(suffix=".wav")
         convert_wav(wav, s.output_sample_rate, f.name)
@@ -83,7 +83,7 @@ async def generate(req: GenerateRequest):
         )
         f.close()
         return StreamingResponse(
-            content=convert_wav(result[1], result[0])
+            content=convert_wav(result[1], result[0]), media_type="audio/wav"
         )
 
 class Model(BaseModel):
@@ -120,7 +120,7 @@ def play_sample(model: str, sample: str):
     return Response(content=c)
 
 manager = ModelManager()
-model_path, _, _ = manager.download_model("tts_models/multilingual/multi-dataset/xtts_v2")
+model_path = os.path.join(manager.output_prefix, "tts_models--multilingual--multi-dataset--xtts_v2")
 s = Synthesizer(
     model_dir=model_path,
 ).to("cuda")
