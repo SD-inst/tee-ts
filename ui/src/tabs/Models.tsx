@@ -1,9 +1,8 @@
-import { ModelTraining } from '@mui/icons-material';
 import {
     Box,
+    Grid,
     List,
     ListItem,
-    ListItemAvatar,
     ListItemText,
     Paper,
     TextField,
@@ -65,16 +64,27 @@ export const Models = () => {
                     <List>
                         {data.map((m: any) => (
                             <ListItem key={m.name}>
-                                <ListItemAvatar>
-                                    <ModelTraining />
-                                </ListItemAvatar>
-                                <ListItemText>{m.name}</ListItemText>
-                                <SamplePicker
-                                    samples={m.samples}
-                                    model={m.name}
-                                    playing={playing}
-                                    setPlaying={handlePlay}
-                                />
+                                <Grid
+                                    container
+                                    spacing={2}
+                                    justifyContent='center'
+                                >
+                                    <Grid item>
+                                        <ListItemText
+                                            primaryTypographyProps={{
+                                                variant: 'h5',
+                                            }}
+                                        >
+                                            {m.name}
+                                        </ListItemText>
+                                    </Grid>
+                                    <SamplePicker
+                                        samples={m.samples}
+                                        model={m.name}
+                                        playing={playing}
+                                        setPlaying={handlePlay}
+                                    />
+                                </Grid>
                             </ListItem>
                         ))}
                     </List>

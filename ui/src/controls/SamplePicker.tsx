@@ -1,16 +1,16 @@
 import { CheckCircle, PlayArrow, Stop } from '@mui/icons-material';
 import {
-    Box,
     Button,
     FormControl,
+    Grid,
     InputLabel,
     MenuItem,
     Select,
-    Tooltip,
+    Tooltip
 } from '@mui/material';
 import { useState } from 'react';
-import { useGenerationContext } from '../contexts/GenerationContext';
 import { useNavigate } from 'react-router';
+import { useGenerationContext } from '../contexts/GenerationContext';
 
 export const SamplePicker = ({
     samples,
@@ -38,35 +38,49 @@ export const SamplePicker = ({
         nav('/gen');
     };
     return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <FormControl sx={{ minWidth: 120 }}>
-                <InputLabel id='sample_selection'>Samples</InputLabel>
-                <Select
-                    value={selected}
-                    onChange={(e) => setSelected(e.target.value)}
-                    label='Samples'
-                    labelId='sample_selection'
-                    size='small'
-                >
-                    {samples.map((s: string) => (
-                        <MenuItem key={s} value={s}>
-                            {s}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
-            <Button variant='outlined' size='small' onClick={handlePlay}>
-                {playing.model === model && playing.sample === selected ? (
-                    <Stop />
-                ) : (
-                    <PlayArrow />
-                )}
-            </Button>
-            <Tooltip title='Select this model'>
-                <Button variant='outlined' size='small' onClick={handleSelect}>
-                    <CheckCircle />
+        <Grid
+            item
+            container
+            spacing={2}
+            alignItems='center'
+            justifyContent='center'
+        >
+            <Grid item container sm={6} justifyContent={{ md: 'right' }}>
+                <FormControl sx={{ maxWidth: 300 }}>
+                    <InputLabel id='sample_selection'>Samples</InputLabel>
+                    <Select
+                        value={selected}
+                        onChange={(e) => setSelected(e.target.value)}
+                        label='Samples'
+                        labelId='sample_selection'
+                        size='small'
+                    >
+                        {samples.map((s: string) => (
+                            <MenuItem key={s} value={s}>
+                                {s}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+            </Grid>
+            <Grid item container gap={2} sm={6}>
+                <Button variant='outlined' size='small' onClick={handlePlay}>
+                    {playing.model === model && playing.sample === selected ? (
+                        <Stop />
+                    ) : (
+                        <PlayArrow />
+                    )}
                 </Button>
-            </Tooltip>
-        </Box>
+                <Tooltip title='Select this model'>
+                    <Button
+                        variant='outlined'
+                        size='small'
+                        onClick={handleSelect}
+                    >
+                        <CheckCircle />
+                    </Button>
+                </Tooltip>
+            </Grid>
+        </Grid>
     );
 };

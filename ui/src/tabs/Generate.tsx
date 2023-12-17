@@ -6,6 +6,7 @@ import {
     CircularProgress,
     FormControl,
     FormControlLabel,
+    Grid,
     InputLabel,
     MenuItem,
     Paper,
@@ -96,54 +97,55 @@ export const Generate = () => {
                     alignItems: 'flex-start',
                 }}
             >
-                <Typography variant='h3' sx={{ alignSelf: 'center' }}>
+                <Typography variant='h4' sx={{ alignSelf: 'center' }}>
                     Generate speech
                 </Typography>
                 <Title />
-                <Box
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        width: '100%',
-                    }}
-                >
-                    <TextField
-                        placeholder='Text'
-                        margin='dense'
-                        size='small'
-                        value={genParams.text}
-                        onChange={(e) => setGenParams({ text: e.target.value })}
-                        fullWidth
-                        multiline
-                    />
-                    <FormControl sx={{ width: 150 }}>
-                        <InputLabel>Language</InputLabel>
-                        <Select
-                            label='language'
-                            size='small'
+                <Grid container spacing={2} sx={{ mt: 2 }} alignItems='center'>
+                    <Grid item xs={12} md={9}>
+                        <TextField
+                            placeholder='Text'
                             margin='dense'
-                            value={genParams.language}
+                            size='small'
+                            value={genParams.text}
                             onChange={(e) =>
-                                setGenParams({ language: e.target.value })
+                                setGenParams({ text: e.target.value })
                             }
+                            fullWidth
+                            multiline
+                        />
+                    </Grid>
+                    <Grid item>
+                        <FormControl>
+                            <InputLabel>Language</InputLabel>
+                            <Select
+                                label='language'
+                                size='small'
+                                margin='dense'
+                                value={genParams.language}
+                                onChange={(e) =>
+                                    setGenParams({
+                                        language: e.target.value,
+                                    })
+                                }
+                            >
+                                {languages.map(([code, name]) => (
+                                    <MenuItem value={code} key={code}>
+                                        {name}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <Button
+                            onClick={handleGenerate}
+                            size='small'
+                            disabled={!genParams.model || !genParams.sample}
                         >
-                            {languages.map(([code, name]) => (
-                                <MenuItem value={code} key={code}>
-                                    {name}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-                    <Button
-                        onClick={handleGenerate}
-                        size='small'
-                        disabled={!genParams.model || !genParams.sample}
-                    >
-                        <Send />
-                    </Button>
-                </Box>
-                <Box sx={{ display: 'flex', gap: 2, p: 1 }}>
+                            <Send />
+                        </Button>
+                    </Grid>
+                </Grid>
+                <Grid container sx={{ mt: 2 }}>
                     <FormControlLabel
                         control={
                             <Checkbox
@@ -178,20 +180,13 @@ export const Generate = () => {
                         }
                         label='Number of samples'
                     />
-                </Box>
-                <Box
-                    sx={{
-                        display: 'flex',
-                        gap: 2,
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                    }}
-                >
+                </Grid>
+                <Grid container sx={{mt: 2}}>
                     {genParams.audios?.map((src) => (
                         <audio src={src} controls key={src} />
                     ))}
                     {isPending && <CircularProgress />}
-                </Box>
+                </Grid>
             </Box>
         </Paper>
     );
