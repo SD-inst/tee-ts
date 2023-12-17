@@ -35,7 +35,7 @@ export const SamplePicker = ({
     const nav = useNavigate();
     const handleSelect = () => {
         setGenParams({ model, sample: selected });
-        nav('/gen');
+        nav(-1);
     };
     return (
         <Grid

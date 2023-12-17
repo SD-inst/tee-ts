@@ -10,7 +10,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,rw \
     --mount=type=cache,target=/root/.cache \
     rm -f /etc/apt/apt.conf.d/docker-clean && \
     apt update && \
-    apt install --no-install-recommends -y git python3 python3-dev pip gcc g++ curl net-tools && \
+    apt install --no-install-recommends -y git python3 python3-dev pip gcc g++ && \
     pip3 install --global --upgrade pip wheel setuptools && \
     # make shared builder & runtime app user
     addgroup --gid $APP_GID app_grp && \

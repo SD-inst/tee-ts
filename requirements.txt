@@ -11,3 +11,4 @@ tensorboardX
 scipy
 pydantic
 pathvalidate
+python-multipart

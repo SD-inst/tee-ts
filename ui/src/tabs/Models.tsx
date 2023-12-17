@@ -6,7 +6,7 @@ import {
     ListItemText,
     Paper,
     TextField,
-    Typography
+    Typography,
 } from '@mui/material';
 import { red } from '@mui/material/colors';
 import { useQuery } from '@tanstack/react-query';
@@ -53,7 +53,7 @@ export const Models = () => {
     return (
         <Paper elevation={5}>
             <Box sx={{ p: 2 }}>
-                <Typography variant='h3'>Models list</Typography>
+                <Typography variant='h4'>Models list</Typography>
                 <TextField
                     size='small'
                     placeholder='Filter'

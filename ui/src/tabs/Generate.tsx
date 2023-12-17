@@ -18,7 +18,9 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import { apiUrl } from '../config';
 import { useGenerationContext } from '../contexts/GenerationContext';
-import { Link } from 'react-router-dom';
+import { Title } from '../controls/Title';
+import { useState } from 'react';
+import { red } from '@mui/material/colors';
 
 const languages = [
     ['en', 'English'],
@@ -40,24 +42,8 @@ const languages = [
     ['hi', 'Hindi'],
 ];
 
-const Title = () => {
-    const { genParams } = useGenerationContext();
-    if (!genParams.model || !genParams.sample) {
-        return (
-            <Typography variant='h5'>
-                Select the model and sample at the{' '}
-                <Link to={'/models'}>models tab</Link>
-            </Typography>
-        );
-    }
-    return (
-        <Typography variant='h5'>
-            Model: {genParams.model}, sample: {genParams.sample}
-        </Typography>
-    );
-};
-
 export const Generate = () => {
+    const [error, setError] = useState('');
     const { genParams, setGenParams } = useGenerationContext();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: () => {
@@ -76,6 +62,10 @@ export const Generate = () => {
             });
         },
         onSuccess: async (data) => {
+            if (data.status !== 200) {
+                setError('Error generating audio.');
+                return;
+            }
             const blobURL = URL.createObjectURL(await data.blob());
             setGenParams({
                 audios: genParams.audios?.concat([blobURL]),
@@ -84,6 +74,7 @@ export const Generate = () => {
     });
     const handleGenerate = async () => {
         setGenParams({ audios: [] });
+        setError('');
         for (let i = 0; i < (genParams.batch_size || 0); i++) {
             await mutateAsync();
         }
@@ -195,6 +186,7 @@ export const Generate = () => {
                         <audio src={src} controls key={src} />
                     ))}
                     {isPending && <CircularProgress />}
+                    {error && <Typography color={red[900]}>{error}</Typography>}
                 </Grid>
             </Box>
         </Paper>

@@ -7,6 +7,8 @@ type params = {
     model: string;
     sample: string;
     audios: string[];
+    rvcFile: File;
+    rvcAudio: string;
     language: string;
 };
 

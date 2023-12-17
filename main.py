@@ -3,10 +3,11 @@ from io import BytesIO
 import io
 import os
 import pathlib
+import shutil
 import tempfile
 from TTS.utils.manage import ModelManager
 from TTS.utils.synthesizer import Synthesizer
-from fastapi import FastAPI
+from fastapi import FastAPI, Form, UploadFile
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import StreamingResponse, Response
 import numpy as np
@@ -139,6 +140,38 @@ def play_sample(model: str, sample: str):
     c = f.read()
     f.close()
     return Response(content=c)
+
+@app.post("/api/rvc")
+async def rvc_process(file: UploadFile, model: str = Form()):
+    async with genLock:
+        root = os.getenv('weight_root')
+        index = os.path.join(root, model, "model.index")
+        if not pathlib.Path(index).exists():
+            index = None
+        with tempfile.NamedTemporaryFile() as src_file:
+            shutil.copyfileobj(file.file, src_file)
+            rvc.get_vc(f"{model}/model.pth")
+            _, result = rvc.vc_single(
+                0,
+                src_file.name,
+                0,
+                None,
+                "rmvpe",
+                index,
+                None,
+                0.75,
+                3,
+                0,
+                0.25,
+                0.33
+            )
+        f = tempfile.NamedTemporaryFile(prefix=".wav")
+        convert_wav(result[1], result[0], f.name)
+        r = convert_audio(f.name)
+        return StreamingResponse(
+            content=open(r.name, "rb"), media_type="audio/ogg"
+        )
+
 
 manager = ModelManager()
 model_path = os.path.join(manager.output_prefix, "tts_models--multilingual--multi-dataset--xtts_v2")
