@@ -15,7 +15,7 @@ export const Title = ({ sampleRequired = true, ...props }) => {
     return (
         <Typography variant='h5' {...props}>
             Model: {genParams.model}
-            {genParams.sample ? `sample: ${genParams.sample}` : ''}
+            {genParams.sample ? `, sample: ${genParams.sample}` : ''}
         </Typography>
     );
 };
