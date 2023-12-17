@@ -6,7 +6,8 @@ import {
     InputLabel,
     MenuItem,
     Select,
-    Tooltip
+    Tooltip,
+    Typography,
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -46,31 +47,44 @@ export const SamplePicker = ({
             justifyContent='center'
         >
             <Grid item container sm={6} justifyContent={{ md: 'right' }}>
-                <FormControl sx={{ maxWidth: 300 }}>
-                    <InputLabel id='sample_selection'>Samples</InputLabel>
-                    <Select
-                        value={selected}
-                        onChange={(e) => setSelected(e.target.value)}
-                        label='Samples'
-                        labelId='sample_selection'
-                        size='small'
-                    >
-                        {samples.map((s: string) => (
-                            <MenuItem key={s} value={s}>
-                                {s}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
+                {samples.length ? (
+                    <FormControl sx={{ maxWidth: 300 }}>
+                        <InputLabel id='sample_selection'>Samples</InputLabel>
+                        <Select
+                            value={selected}
+                            onChange={(e) => setSelected(e.target.value)}
+                            label='Samples'
+                            labelId='sample_selection'
+                            size='small'
+                        >
+                            {samples.map((s: string) => (
+                                <MenuItem key={s} value={s}>
+                                    {s}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                ) : (
+                    <Typography variant='body2'>
+                        No samples, can be used for RVC only
+                    </Typography>
+                )}
             </Grid>
             <Grid item container gap={2} sm={6}>
-                <Button variant='outlined' size='small' onClick={handlePlay}>
-                    {playing.model === model && playing.sample === selected ? (
-                        <Stop />
-                    ) : (
-                        <PlayArrow />
-                    )}
-                </Button>
+                {samples.length ? (
+                    <Button
+                        variant='outlined'
+                        size='small'
+                        onClick={handlePlay}
+                    >
+                        {playing.model === model &&
+                        playing.sample === selected ? (
+                            <Stop />
+                        ) : (
+                            <PlayArrow />
+                        )}
+                    </Button>
+                ) : null}
                 <Tooltip title='Select this model'>
                     <Button
                         variant='outlined'

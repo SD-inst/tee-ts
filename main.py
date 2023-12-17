@@ -128,9 +128,7 @@ def list_models(filter: str = '') -> list[Model]:
         if p.joinpath("samples").is_dir():
             samples = os.listdir(os.path.join(root, d, "samples"))
             model.samples = samples
-            result.append(model)
-        elif filter:
-            result.append(model)
+        result.append(model)
 
     return result
 

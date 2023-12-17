@@ -52,7 +52,7 @@ export const RVC = () => {
             <Box sx={{ p: 2 }}>
                 <Typography variant='h4'>Voice changer</Typography>
             </Box>
-            <Title />
+            <Title sampleRequired={false} />
             <Grid container spacing={2} sx={{ mt: 2 }}>
                 <Grid item xs={12}>
                     <FileUpload
