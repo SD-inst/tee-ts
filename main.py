@@ -1,5 +1,6 @@
 import asyncio
 from io import BytesIO
+import io
 import os
 import pathlib
 import tempfile
@@ -14,6 +15,7 @@ import scipy
 from infer.modules.vc.modules import VC
 from configs.config import Config
 from pathvalidate import validate_filename, ValidationError
+import av
 
 app = FastAPI()
 
@@ -45,6 +47,23 @@ def convert_wav(wav, sample_rate, path=None):
     else:
         scipy.io.wavfile.write(path, sample_rate, wav_norm)
 
+def convert_audio(in_file: str) -> io.FileIO:
+    out_file = tempfile.NamedTemporaryFile(suffix='.ogg')
+    with av.open(in_file) as in_container:
+        in_stream = in_container.streams.audio[0]
+        with av.open(out_file.name, 'w', 'ogg') as out_container:
+            out_stream = out_container.add_stream(
+                'libvorbis',
+                rate=48000,
+                layout='mono'
+            )
+            for frame in in_container.decode(in_stream):
+                for packet in out_stream.encode(frame):
+                    out_container.mux(packet)
+            for packet in out_stream.encode():
+                out_container.mux(packet)
+    return out_file
+
 @app.post("/api/generate")
 async def generate(req: GenerateRequest):
     try:
@@ -57,34 +76,36 @@ async def generate(req: GenerateRequest):
         root = os.getenv('weight_root')
         wav = s.tts(req.text, speaker_wav=os.path.join(root, req.model, "samples", req.sample), speaker_name=None, language_name=req.language)
         wav = np.array(wav)
-        if not req.rvc:
-            return StreamingResponse(content=convert_wav(wav, s.output_sample_rate), media_type="audio/wav")
+        with tempfile.NamedTemporaryFile(suffix=".wav") as f:
+            convert_wav(wav, s.output_sample_rate, f.name)
+            if not req.rvc:
+                r = convert_audio(f.name)
+                return StreamingResponse(content=open(r.name, "rb"), media_type="audio/ogg")
 
-        f = tempfile.NamedTemporaryFile(suffix=".wav")
-        convert_wav(wav, s.output_sample_rate, f.name)
-        index = os.path.join(root, req.model, "model.index")
-        if not pathlib.Path(index).exists():
-            index = None
+            index = os.path.join(root, req.model, "model.index")
+            if not pathlib.Path(index).exists():
+                index = None
 
-        rvc.get_vc(f"{req.model}/model.pth")
-        _, result = rvc.vc_single(
-            0,
-            f.name,
-            0,
-            None,
-            "rmvpe",
-            index,
-            None,
-            req.index,
-            req.filter_radius,
-            req.resample,
-            req.rms_mix_rate,
-            req.protect
-        )
-        f.close()
-        return StreamingResponse(
-            content=convert_wav(result[1], result[0]), media_type="audio/wav"
-        )
+            rvc.get_vc(f"{req.model}/model.pth")
+            _, result = rvc.vc_single(
+                0,
+                f.name,
+                0,
+                None,
+                "rmvpe",
+                index,
+                None,
+                req.index,
+                req.filter_radius,
+                req.resample,
+                req.rms_mix_rate,
+                req.protect
+            )
+            convert_wav(result[1], result[0], f.name)
+            r = convert_audio(f.name)
+            return StreamingResponse(
+                content=open(r.name, "rb"), media_type="audio/ogg"
+            )
 
 class Model(BaseModel):
     name: str
