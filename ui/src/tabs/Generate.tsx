@@ -97,7 +97,6 @@ export const Generate = () => {
                     <Grid item xs={12} md={9}>
                         <TextField
                             placeholder='Text'
-                            margin='dense'
                             size='small'
                             value={genParams.text}
                             onChange={(e) =>
@@ -107,34 +106,36 @@ export const Generate = () => {
                             multiline
                         />
                     </Grid>
-                    <Grid item>
-                        <FormControl>
-                            <InputLabel>Language</InputLabel>
-                            <Select
-                                label='language'
+                    <Grid item xs={12} md={3}>
+                        <Box display='flex' gap={1} alignItems='center'>
+                            <FormControl>
+                                <InputLabel>Language</InputLabel>
+                                <Select
+                                    label='language'
+                                    size='small'
+                                    margin='dense'
+                                    value={genParams.language}
+                                    onChange={(e) =>
+                                        setGenParams({
+                                            language: e.target.value,
+                                        })
+                                    }
+                                >
+                                    {languages.map(([code, name]) => (
+                                        <MenuItem value={code} key={code}>
+                                            {name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <Button
+                                onClick={handleGenerate}
                                 size='small'
-                                margin='dense'
-                                value={genParams.language}
-                                onChange={(e) =>
-                                    setGenParams({
-                                        language: e.target.value,
-                                    })
-                                }
+                                disabled={!genParams.model || !genParams.sample}
                             >
-                                {languages.map(([code, name]) => (
-                                    <MenuItem value={code} key={code}>
-                                        {name}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <Button
-                            onClick={handleGenerate}
-                            size='small'
-                            disabled={!genParams.model || !genParams.sample}
-                        >
-                            <Send />
-                        </Button>
+                                <Send />
+                            </Button>
+                        </Box>
                     </Grid>
                 </Grid>
                 <Grid container sx={{ mt: 2 }}>
@@ -153,6 +154,8 @@ export const Generate = () => {
                         sx={{
                             display: 'flex',
                             width: '50%',
+                            gap: 1,
+                            alignItems: 'center',
                         }}
                     >
                         <TextField
