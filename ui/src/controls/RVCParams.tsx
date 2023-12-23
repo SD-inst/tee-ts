@@ -48,7 +48,7 @@ export const RVCParams = ({ ...props }: Omit<AccordionProps, 'children'>) => {
                     min={0}
                     max={1}
                     step={0.01}
-                    label='RMX mix rate'
+                    label='RMS mix rate'
                     value={params.rms_mix_rate}
                     setValue={(v) => dispatch(setParam({ rms_mix_rate: v }))}
                 />
