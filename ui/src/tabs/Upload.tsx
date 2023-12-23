@@ -67,6 +67,10 @@ export const UploadDialog = ({
                         setProgress(0);
                     }
                 });
+                req.addEventListener('error', () => {
+                    reject({ error: 'upload error' });
+                    setProgress(0);
+                });
                 req.open('POST', apiUrl + '/upload');
                 req.send(data);
             });
