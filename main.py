@@ -111,6 +111,7 @@ async def generate(req: GenerateRequest):
 class Model(BaseModel):
     name: str
     samples: list[str]
+    ts: float
 
 @app.get("/api/models")
 def list_models(filter: str = '') -> list[Model]:
@@ -124,13 +125,14 @@ def list_models(filter: str = '') -> list[Model]:
             continue
         if d.lower().count(filter) == 0:
             continue
-        model = Model(name=d, samples=[])
+        r = p.stat()
+        model = Model(name=d, samples=[], ts=r.st_ctime)
         if p.joinpath("samples").is_dir():
             samples = os.listdir(os.path.join(root, d, "samples"))
             model.samples = samples
         result.append(model)
 
-    return result
+    return sorted(result, key=lambda x: x.ts, reverse=True)
 
 @app.get("/api/play_sample")
 def play_sample(model: str, sample: str):

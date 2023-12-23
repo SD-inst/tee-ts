@@ -23,4 +23,4 @@ COPY --chown=app:app_grp requirements.txt /home/app/tts/
 WORKDIR /home/app/tts
 RUN --mount=type=cache,target=/home/app/.cache pip3 install -r requirements.txt
 COPY --chown=app:app_grp . /home/app/tts
-CMD export HOME=/home/app && weight_root=assets/weights index_root=logs rmvpe_root=assets/rmvpe /home/app/.local/bin/uvicorn --host 0.0.0.0 --port 8000 --root-path /tts main:app
+CMD export HOME=/home/app && weight_root=assets/weights index_root=logs rmvpe_root=assets/rmvpe /home/app/.local/bin/uvicorn --host 0.0.0.0 --port 8000 main:app
