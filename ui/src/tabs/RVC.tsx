@@ -16,10 +16,12 @@ import { Title } from '../controls/Title';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../reducers/store';
 import { setFile, setResult } from '../reducers/rvc';
+import { RVCParams } from '../controls/RVCParams';
 
 export const RVC = () => {
     const [error, setError] = useState('');
     const model = useSelector((state: RootState) => state.model.name);
+    const rvcParams = useSelector((state: RootState) => state.rvcparams);
     const { file, result } = useSelector((state: RootState) => state.rvc);
     const dispatch = useDispatch();
     const { mutate, isPending } = useMutation({
@@ -30,6 +32,7 @@ export const RVC = () => {
             const f = new FormData();
             f.append('file', file);
             f.append('model', model);
+            Object.entries(rvcParams).forEach(([k, v]) => f.append(k, '' + v));
             return fetch(apiUrl + '/rvc', {
                 method: 'POST',
                 body: f,
@@ -61,6 +64,9 @@ export const RVC = () => {
                         onChange={(f) => dispatch(setFile(f))}
                         fileSelected={file?.name}
                     />
+                </Grid>
+                <Grid item xs={12}>
+                    <RVCParams />
                 </Grid>
                 <Grid item xs={12}>
                     <Button

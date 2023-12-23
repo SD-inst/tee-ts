@@ -31,6 +31,7 @@ class GenerateRequest(BaseModel):
     sample: str
     model: str
     language: str = "en"
+    pitch: int = 0
     rvc: bool = True
     index: float = 0.75
     filter_radius: int = 3
@@ -94,7 +95,7 @@ async def generate(req: GenerateRequest):
             _, result = rvc.vc_single(
                 0,
                 f.name,
-                0,
+                req.pitch,
                 None,
                 "rmvpe",
                 index,
@@ -145,28 +146,28 @@ def play_sample(model: str, sample: str):
     return Response(content=c)
 
 @app.post("/api/rvc")
-async def rvc_process(file: UploadFile, model: str = Form()):
+async def rvc_process(file: UploadFile, model: str = Form(), pitch: int = Form(0), index: float = Form(0.75), filter_radius: int = Form(3), rms_mix_rate: float = Form(0.25), protect: float = Form(0.33)):
     async with genLock:
         root = os.getenv('weight_root')
-        index = os.path.join(root, model, "model.index")
-        if not pathlib.Path(index).exists():
-            index = None
+        indexfn = os.path.join(root, model, "model.index")
+        if not pathlib.Path(indexfn).exists():
+            indexfn = None
         with tempfile.NamedTemporaryFile() as src_file:
             shutil.copyfileobj(file.file, src_file)
             rvc.get_vc(f"{model}/model.pth")
             _, result = rvc.vc_single(
                 0,
                 src_file.name,
-                0,
+                pitch,
                 None,
                 "rmvpe",
-                index,
+                indexfn,
                 None,
-                0.75,
-                3,
+                index,
+                filter_radius,
                 0,
-                0.25,
-                0.33
+                rms_mix_rate,
+                protect
             )
         f = tempfile.NamedTemporaryFile(prefix=".wav")
         convert_wav(result[1], result[0], f.name)

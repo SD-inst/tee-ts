@@ -11,15 +11,16 @@ import {
     MenuItem,
     Paper,
     Select,
-    Slider,
     TextField,
-    Typography,
+    Typography
 } from '@mui/material';
 import { red } from '@mui/material/colors';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { apiUrl } from '../config';
+import { NumSlider } from '../controls/Numslider';
+import { RVCParams } from '../controls/RVCParams';
 import { Title } from '../controls/Title';
 import { appendAudio, clearAudio, useSetGenParam } from '../reducers/generate';
 import { RootState } from '../reducers/store';
@@ -50,6 +51,7 @@ export const Generate = () => {
     const genParams = useSelector((state: RootState) => state.generate.params);
     const model = useSelector((state: RootState) => state.model);
     const audios = useSelector((state: RootState) => state.generate.audios);
+    const rvcParams = useSelector((state: RootState) => state.rvcparams);
     const setGenParam = useSetGenParam();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: () => {
@@ -64,6 +66,7 @@ export const Generate = () => {
                     model: model.name,
                     sample: model.sample,
                     language: genParams.language,
+                    ...rvcParams,
                 }),
             });
         },
@@ -154,40 +157,17 @@ export const Generate = () => {
                         }
                         label='Use RVC'
                     />
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            width: '50%',
-                            gap: 1,
-                            alignItems: 'center',
-                        }}
-                    >
-                        <TextField
-                            type='number'
-                            inputProps={{ min: 1, max: 10 }}
-                            size='small'
-                            sx={{ mr: 1, width: 100 }}
-                            value={genParams.batch_size}
-                            onChange={(e) =>
-                                setGenParam({
-                                    batch_size: Math.max(
-                                        0,
-                                        Math.min(10, parseInt(e.target.value))
-                                    ),
-                                })
-                            }
-                            label='Batch'
-                        />
-                        <Slider
-                            value={genParams.batch_size}
-                            min={1}
-                            max={10}
-                            onChange={(_, v) =>
-                                setGenParam({ batch_size: v as number })
-                            }
-                        />
-                    </Box>
+                    <NumSlider
+                        min={1}
+                        max={10}
+                        width='50%'
+                        sx={{ mr: 1, width: 100 }}
+                        value={genParams.batch_size}
+                        setValue={(v) => setGenParam({ batch_size: v })}
+                        label='Batch'
+                    />
                 </Grid>
+                <RVCParams sx={{ width: '100%', mt: 1 }} />
                 <Grid container gap={1} sx={{ mt: 2 }}>
                     {audios.map((src: string) => (
                         <audio src={src} controls key={src} />
