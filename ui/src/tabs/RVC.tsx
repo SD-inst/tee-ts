@@ -7,7 +7,6 @@ import {
     Paper,
     Typography,
 } from '@mui/material';
-import { red } from '@mui/material/colors';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { apiUrl } from '../config';
@@ -16,7 +15,7 @@ import { Title } from '../controls/Title';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../reducers/store';
 import { setFile, setResult } from '../reducers/rvc';
-import { RVCParams } from '../controls/RVCParams';
+import { showError } from '../utils/notify';
 
 export const RVC = () => {
     const [error, setError] = useState('');
@@ -40,16 +39,16 @@ export const RVC = () => {
         },
         onSuccess: async (data) => {
             if (data.status !== 200) {
-                setError('Error processing audio.');
+                const j = await data.json();
+                showError('Error processing audio: ' + j.error);
                 return;
             }
             const blobURL = URL.createObjectURL(await data.blob());
             dispatch(setResult(blobURL));
         },
-        onError: (e) => setError(e.message),
+        onError: (e) => showError(e.message),
     });
     const handleProcess = () => {
-        setError('');
         mutate();
     };
     return (
@@ -82,7 +81,6 @@ export const RVC = () => {
                 <Grid item xs={12}>
                     {result && <audio src={result} controls />}
                     {isPending && <CircularProgress />}
-                    {error && <Typography color={red[900]}>{error}</Typography>}
                 </Grid>
             </Grid>
         </Paper>

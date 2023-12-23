@@ -13,6 +13,7 @@ import { store } from './reducers/store';
 import { Generate } from './tabs/Generate';
 import { Models } from './tabs/Models';
 import { RVC } from './tabs/RVC';
+import { SnackbarProvider } from 'notistack';
 
 function App() {
     const nav = useNavigate();
@@ -26,6 +27,7 @@ function App() {
     return (
         <Provider store={store}>
             <ThemeProvider theme={theme}>
+                <SnackbarProvider />
                 <Box sx={{ width: '100%' }}>
                     <Tabs
                         value={match?.params.tab}

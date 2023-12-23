@@ -12,11 +12,9 @@ import {
     Paper,
     Select,
     TextField,
-    Typography
+    Typography,
 } from '@mui/material';
-import { red } from '@mui/material/colors';
 import { useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { apiUrl } from '../config';
 import { NumSlider } from '../controls/Numslider';
@@ -24,6 +22,7 @@ import { RVCParams } from '../controls/RVCParams';
 import { Title } from '../controls/Title';
 import { appendAudio, clearAudio, useSetGenParam } from '../reducers/generate';
 import { RootState } from '../reducers/store';
+import { showError } from '../utils/notify';
 
 const languages = [
     ['en', 'English'],
@@ -46,7 +45,6 @@ const languages = [
 ];
 
 export const Generate = () => {
-    const [error, setError] = useState('');
     const dispatch = useDispatch();
     const genParams = useSelector((state: RootState) => state.generate.params);
     const model = useSelector((state: RootState) => state.model);
@@ -72,16 +70,17 @@ export const Generate = () => {
         },
         onSuccess: async (data) => {
             if (data.status !== 200) {
-                setError('Error generating audio.');
+                const j = await data.json();
+                showError('Error generating audio: ' + j.error);
                 return;
             }
             const blobURL = URL.createObjectURL(await data.blob());
             dispatch(appendAudio(blobURL));
         },
+        onError: (e) => showError(e.message),
     });
     const handleGenerate = async () => {
         dispatch(clearAudio());
-        setError('');
         for (let i = 0; i < (genParams.batch_size || 0); i++) {
             await mutateAsync();
         }
@@ -173,7 +172,6 @@ export const Generate = () => {
                         <audio src={src} controls key={src} />
                     ))}
                     {isPending && <CircularProgress />}
-                    {error && <Typography color={red[900]}>{error}</Typography>}
                 </Grid>
             </Box>
         </Paper>

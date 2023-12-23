@@ -8,12 +8,12 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
-import { red } from '@mui/material/colors';
 import { useQuery } from '@tanstack/react-query';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiUrl } from '../config';
 import { SamplePicker } from '../controls/SamplePicker';
 import { useDebounce } from '../utils/debounce';
+import { showError } from '../utils/notify';
 
 export const Models = () => {
     const [playing, setPlaying] = useState<{ model?: string; sample?: string }>(
@@ -34,6 +34,11 @@ export const Models = () => {
             return j;
         },
     });
+    useEffect(() => {
+        if (isError) {
+            showError(error.message);
+        }
+    }, [isError, error]);
     const handlePlay = (model: string, sample: string) => {
         if (!audioRef.current) {
             return;
