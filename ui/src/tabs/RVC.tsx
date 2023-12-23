@@ -7,25 +7,29 @@ import {
     Paper,
     Typography,
 } from '@mui/material';
+import { red } from '@mui/material/colors';
 import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
 import { apiUrl } from '../config';
-import { useGenerationContext } from '../contexts/GenerationContext';
 import { FileUpload } from '../controls/FileUpload';
 import { Title } from '../controls/Title';
-import { useState } from 'react';
-import { red } from '@mui/material/colors';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../reducers/store';
+import { setFile, setResult } from '../reducers/rvc';
 
 export const RVC = () => {
     const [error, setError] = useState('');
-    const { genParams, setGenParams } = useGenerationContext();
+    const model = useSelector((state: RootState) => state.model.name);
+    const { file, result } = useSelector((state: RootState) => state.rvc);
+    const dispatch = useDispatch();
     const { mutate, isPending } = useMutation({
         mutationFn: () => {
-            if (!genParams.model || !genParams.rvcFile) {
+            if (!model || !file) {
                 return Promise.reject();
             }
             const f = new FormData();
-            f.append('file', genParams.rvcFile);
-            f.append('model', genParams.model);
+            f.append('file', file);
+            f.append('model', model);
             return fetch(apiUrl + '/rvc', {
                 method: 'POST',
                 body: f,
@@ -37,9 +41,7 @@ export const RVC = () => {
                 return;
             }
             const blobURL = URL.createObjectURL(await data.blob());
-            setGenParams({
-                rvcAudio: blobURL,
-            });
+            dispatch(setResult(blobURL));
         },
         onError: (e) => setError(e.message),
     });
@@ -56,8 +58,8 @@ export const RVC = () => {
             <Grid container spacing={2} sx={{ mt: 2 }}>
                 <Grid item xs={12}>
                     <FileUpload
-                        onChange={(f) => setGenParams({ rvcFile: f })}
-                        fileSelected={genParams.rvcFile?.name}
+                        onChange={(f) => dispatch(setFile(f))}
+                        fileSelected={file?.name}
                     />
                 </Grid>
                 <Grid item xs={12}>
@@ -66,15 +68,13 @@ export const RVC = () => {
                         color='success'
                         startIcon={<Send />}
                         onClick={handleProcess}
-                        disabled={!genParams.rvcFile}
+                        disabled={!file || !model}
                     >
                         Process
                     </Button>
                 </Grid>
                 <Grid item xs={12}>
-                    {genParams.rvcAudio && (
-                        <audio src={genParams.rvcAudio} controls />
-                    )}
+                    {result && <audio src={result} controls />}
                     {isPending && <CircularProgress />}
                     {error && <Typography color={red[900]}>{error}</Typography>}
                 </Grid>

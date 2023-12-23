@@ -15,12 +15,14 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
-import { useMutation } from '@tanstack/react-query';
-import { apiUrl } from '../config';
-import { useGenerationContext } from '../contexts/GenerationContext';
-import { Title } from '../controls/Title';
-import { useState } from 'react';
 import { red } from '@mui/material/colors';
+import { useMutation } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { apiUrl } from '../config';
+import { Title } from '../controls/Title';
+import { appendAudio, clearAudio, useSetGenParam } from '../reducers/generate';
+import { RootState } from '../reducers/store';
 
 const languages = [
     ['en', 'English'],
@@ -44,7 +46,11 @@ const languages = [
 
 export const Generate = () => {
     const [error, setError] = useState('');
-    const { genParams, setGenParams } = useGenerationContext();
+    const dispatch = useDispatch();
+    const genParams = useSelector((state: RootState) => state.generate.params);
+    const model = useSelector((state: RootState) => state.model);
+    const audios = useSelector((state: RootState) => state.generate.audios);
+    const setGenParam = useSetGenParam();
     const { mutateAsync, isPending } = useMutation({
         mutationFn: () => {
             const headers = new Headers();
@@ -55,8 +61,8 @@ export const Generate = () => {
                 body: JSON.stringify({
                     text: genParams.text,
                     rvc: genParams.RVC,
-                    model: genParams.model,
-                    sample: genParams.sample,
+                    model: model.name,
+                    sample: model.sample,
                     language: genParams.language,
                 }),
             });
@@ -67,13 +73,11 @@ export const Generate = () => {
                 return;
             }
             const blobURL = URL.createObjectURL(await data.blob());
-            setGenParams({
-                audios: genParams.audios?.concat([blobURL]),
-            });
+            dispatch(appendAudio(blobURL));
         },
     });
     const handleGenerate = async () => {
-        setGenParams({ audios: [] });
+        dispatch(clearAudio());
         setError('');
         for (let i = 0; i < (genParams.batch_size || 0); i++) {
             await mutateAsync();
@@ -100,7 +104,7 @@ export const Generate = () => {
                             size='small'
                             value={genParams.text}
                             onChange={(e) =>
-                                setGenParams({ text: e.target.value })
+                                setGenParam({ text: e.target.value })
                             }
                             fullWidth
                             multiline
@@ -116,7 +120,7 @@ export const Generate = () => {
                                     margin='dense'
                                     value={genParams.language}
                                     onChange={(e) =>
-                                        setGenParams({
+                                        setGenParam({
                                             language: e.target.value,
                                         })
                                     }
@@ -131,7 +135,7 @@ export const Generate = () => {
                             <Button
                                 onClick={handleGenerate}
                                 size='small'
-                                disabled={!genParams.model || !genParams.sample}
+                                disabled={!model.name || !model.sample}
                             >
                                 <Send />
                             </Button>
@@ -143,7 +147,7 @@ export const Generate = () => {
                         control={
                             <Checkbox
                                 onChange={(e) =>
-                                    setGenParams({ RVC: e.target.checked })
+                                    setGenParam({ RVC: e.target.checked })
                                 }
                                 checked={genParams.RVC}
                             />
@@ -165,7 +169,7 @@ export const Generate = () => {
                             sx={{ mr: 1, width: 100 }}
                             value={genParams.batch_size}
                             onChange={(e) =>
-                                setGenParams({
+                                setGenParam({
                                     batch_size: Math.max(
                                         0,
                                         Math.min(10, parseInt(e.target.value))
@@ -179,13 +183,13 @@ export const Generate = () => {
                             min={1}
                             max={10}
                             onChange={(_, v) =>
-                                setGenParams({ batch_size: v as number })
+                                setGenParam({ batch_size: v as number })
                             }
                         />
                     </Box>
                 </Grid>
-                <Grid container sx={{ mt: 2 }}>
-                    {genParams.audios?.map((src) => (
+                <Grid container gap={1} sx={{ mt: 2 }}>
+                    {audios.map((src: string) => (
                         <audio src={src} controls key={src} />
                     ))}
                     {isPending && <CircularProgress />}

@@ -1,10 +1,11 @@
 import { Typography } from '@mui/material';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { useGenerationContext } from '../contexts/GenerationContext';
+import { RootState } from '../reducers/store';
 
 export const Title = ({ sampleRequired = true, ...props }) => {
-    const { genParams } = useGenerationContext();
-    if (!genParams.model || (!genParams.sample && sampleRequired)) {
+    const { name, sample } = useSelector((state: RootState) => state.model);
+    if (!name || (!sample && sampleRequired)) {
         return (
             <Typography variant='h5' {...props}>
                 Select the model and sample at the{' '}
@@ -14,8 +15,8 @@ export const Title = ({ sampleRequired = true, ...props }) => {
     }
     return (
         <Typography variant='h5' {...props}>
-            Model: {genParams.model}
-            {genParams.sample ? `, sample: ${genParams.sample}` : ''}
+            Model: {name}
+            {sample ? `, sample: ${sample}` : ''}
         </Typography>
     );
 };

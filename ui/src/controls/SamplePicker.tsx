@@ -10,8 +10,9 @@ import {
     Typography,
 } from '@mui/material';
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router';
-import { useGenerationContext } from '../contexts/GenerationContext';
+import { setModel, setSample } from '../reducers/model';
 
 export const SamplePicker = ({
     samples,
@@ -24,8 +25,8 @@ export const SamplePicker = ({
     playing: { model?: string; sample?: string };
     setPlaying: (model: string, sample: string) => void;
 }) => {
-    const { setGenParams } = useGenerationContext();
     const [selected, setSelected] = useState(samples.length ? samples[0] : '');
+    const dispatch = useDispatch();
     const handlePlay = () => {
         if (playing.model === model && playing.sample === selected) {
             setPlaying('', '');
@@ -35,7 +36,8 @@ export const SamplePicker = ({
     };
     const nav = useNavigate();
     const handleSelect = () => {
-        setGenParams({ model, sample: selected });
+        dispatch(setModel(model));
+        dispatch(setSample(selected));
         nav(-1);
     };
     return (

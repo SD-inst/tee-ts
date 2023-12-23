@@ -6,11 +6,12 @@ import {
     createTheme,
     useMediaQuery,
 } from '@mui/material';
+import { Provider } from 'react-redux';
 import { Navigate, Route, Routes, useMatch, useNavigate } from 'react-router';
 import './App.css';
+import { store } from './reducers/store';
 import { Generate } from './tabs/Generate';
 import { Models } from './tabs/Models';
-import { GenerationContextProvider } from './contexts/GenerationContext';
 import { RVC } from './tabs/RVC';
 
 function App() {
@@ -23,9 +24,9 @@ function App() {
         },
     });
     return (
-        <ThemeProvider theme={theme}>
-            <Box sx={{ width: '100%' }}>
-                <GenerationContextProvider>
+        <Provider store={store}>
+            <ThemeProvider theme={theme}>
+                <Box sx={{ width: '100%' }}>
                     <Tabs
                         value={match?.params.tab}
                         onChange={(_, v) => nav(v)}
@@ -44,9 +45,9 @@ function App() {
                         <Route path='models' element={<Models />} />
                         <Route path='rvc' element={<RVC />} />
                     </Routes>
-                </GenerationContextProvider>
-            </Box>
-        </ThemeProvider>
+                </Box>
+            </ThemeProvider>
+        </Provider>
     );
 }
 
