@@ -1,4 +1,4 @@
-import { CheckCircle, PlayArrow, Stop } from '@mui/icons-material';
+import { CheckCircle, Edit, PlayArrow, Stop } from '@mui/icons-material';
 import {
     Button,
     FormControl,
@@ -19,11 +19,13 @@ export const SamplePicker = ({
     model,
     playing,
     setPlaying,
+    edit,
 }: {
     samples: string[];
     model: string;
     playing: { model?: string; sample?: string };
     setPlaying: (model: string, sample: string) => void;
+    edit: (model: string) => void;
 }) => {
     const [selected, setSelected] = useState(samples.length ? samples[0] : '');
     const dispatch = useDispatch();
@@ -94,6 +96,15 @@ export const SamplePicker = ({
                         onClick={handleSelect}
                     >
                         <CheckCircle />
+                    </Button>
+                </Tooltip>
+                <Tooltip title='Edit'>
+                    <Button
+                        variant='outlined'
+                        size='small'
+                        onClick={() => edit(model)}
+                    >
+                        <Edit />
                     </Button>
                 </Tooltip>
             </Grid>

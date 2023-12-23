@@ -8,17 +8,16 @@ import {
     Typography,
 } from '@mui/material';
 import { useMutation } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { apiUrl } from '../config';
 import { FileUpload } from '../controls/FileUpload';
+import { RVCParams } from '../controls/RVCParams';
 import { Title } from '../controls/Title';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../reducers/store';
 import { setFile, setResult } from '../reducers/rvc';
+import { RootState } from '../reducers/store';
 import { showError } from '../utils/notify';
 
 export const RVC = () => {
-    const [error, setError] = useState('');
     const model = useSelector((state: RootState) => state.model.name);
     const rvcParams = useSelector((state: RootState) => state.rvcparams);
     const { file, result } = useSelector((state: RootState) => state.rvc);

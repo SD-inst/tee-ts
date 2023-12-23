@@ -22,8 +22,8 @@ export const RVCParams = ({ ...props }: Omit<AccordionProps, 'children'>) => {
                 sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}
             >
                 <NumSlider
-                    min={-12}
-                    max={12}
+                    min={-24}
+                    max={24}
                     label='Pitch shift'
                     value={params.pitch}
                     setValue={(v) => dispatch(setParam({ pitch: v }))}

@@ -1,23 +1,25 @@
 import asyncio
-from io import BytesIO
 import io
 import os
 import pathlib
 import shutil
 import tempfile
-from TTS.utils.manage import ModelManager
-from TTS.utils.synthesizer import Synthesizer
-from fastapi import FastAPI, Form, UploadFile
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import StreamingResponse, Response
+from io import BytesIO
+
+import av
 import numpy as np
-from pydantic import BaseModel
 import scipy
 import torch
-from infer.modules.vc.modules import VC
+from fastapi import FastAPI, Form, UploadFile
+from fastapi.responses import JSONResponse, Response, StreamingResponse
+from fastapi.staticfiles import StaticFiles
+from pathvalidate import ValidationError, validate_filename
+from pydantic import BaseModel
+from TTS.utils.manage import ModelManager
+from TTS.utils.synthesizer import Synthesizer
+
 from configs.config import Config
-from pathvalidate import validate_filename, ValidationError
-import av
+from infer.modules.vc.modules import VC
 
 app = FastAPI()
 
@@ -175,6 +177,39 @@ async def rvc_process(file: UploadFile, model: str = Form(), pitch: int = Form(0
         return StreamingResponse(
             content=open(r.name, "rb"), media_type="audio/ogg"
         )
+
+@app.post("/api/upload")
+def upload(model: UploadFile = None, index: UploadFile = None, sample: UploadFile = None, name: str = Form()):
+    try:
+        validate_filename(name)
+        if sample is not None:
+            validate_filename(sample.filename)
+    except ValidationError:
+        return JSONResponse({"error": "Invalid model or sample name"}, 400)
+
+    root = pathlib.Path(os.getenv("weight_root"))
+    model_path = root / name
+    exists = model_path.exists()
+    if exists:
+        model = None
+        index = None
+    elif model is None:
+        return JSONResponse({"error": "Missing model file"}, 400)
+
+    os.makedirs(model_path / "samples", exist_ok=True)
+    if model is not None:
+        with open(model_path / "model.pth", "wb") as f:
+            shutil.copyfileobj(model.file, f)
+
+    if index is not None:
+        with open(model_path / "model.index", "wb") as f:
+            shutil.copyfileobj(index.file, f)
+    if sample is not None:
+        with open(model_path / "samples" / sample.filename, "wb") as f:
+            shutil.copyfileobj(sample.file, f)
+    
+    return {"result": "success"}
+    
 
 def unload():
     global s

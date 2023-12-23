@@ -8,6 +8,7 @@ import {
     FormControlLabel,
     Grid,
     InputLabel,
+    Link,
     MenuItem,
     Paper,
     Select,
@@ -173,6 +174,13 @@ export const Generate = () => {
                     ))}
                     {isPending && <CircularProgress />}
                 </Grid>
+                <Typography variant='subtitle2' sx={{ mt: 3 }}>
+                    Please read the{' '}
+                    <Link href='https://coqui.ai/cpml' target='_blank'>
+                        XTTS model license
+                    </Link>{' '}
+                    (tl;dr: you can't use the generated audio commercially)
+                </Typography>
             </Box>
         </Paper>
     );

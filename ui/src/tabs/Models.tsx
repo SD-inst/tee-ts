@@ -1,5 +1,7 @@
+import { Upload } from '@mui/icons-material';
 import {
     Box,
+    Button,
     Grid,
     List,
     ListItem,
@@ -14,11 +16,14 @@ import { apiUrl } from '../config';
 import { SamplePicker } from '../controls/SamplePicker';
 import { useDebounce } from '../utils/debounce';
 import { showError } from '../utils/notify';
+import { UploadDialog } from './Upload';
 
 export const Models = () => {
     const [playing, setPlaying] = useState<{ model?: string; sample?: string }>(
         {}
     );
+    const [editModelName, setEditModelName] = useState('');
+    const [uploadOpen, setUploadOpen] = useState(false);
     const [filter, setFilter] = useState('');
     const dFilter = useDebounce(filter, 1000);
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -55,6 +60,10 @@ export const Models = () => {
         setPlaying({ model, sample });
         audioRef.current.play();
     };
+    const handleUpload = () => {
+        setEditModelName('');
+        setUploadOpen(true);
+    };
     return (
         <Paper elevation={5}>
             <Box sx={{ p: 2 }}>
@@ -65,6 +74,16 @@ export const Models = () => {
                     value={filter}
                     onChange={(e) => setFilter(e.target.value)}
                 />
+                <Box sx={{ mt: 1 }}>
+                    <Button
+                        startIcon={<Upload />}
+                        variant='contained'
+                        color='success'
+                        onClick={handleUpload}
+                    >
+                        Upload model
+                    </Button>
+                </Box>
                 {isSuccess && (
                     <List>
                         {data.map((m: any) => (
@@ -88,19 +107,30 @@ export const Models = () => {
                                         model={m.name}
                                         playing={playing}
                                         setPlaying={handlePlay}
+                                        edit={(model) => {
+                                            setEditModelName(model);
+                                            setUploadOpen(true);
+                                        }}
                                     />
                                 </Grid>
                             </ListItem>
                         ))}
                     </List>
                 )}
-                {isError && (
-                    <Typography color={red[800]}>
-                        Error: {error.message}
-                    </Typography>
-                )}
             </Box>
             <audio ref={audioRef} onEnded={() => setPlaying({})} />
+            <UploadDialog
+                open={uploadOpen}
+                onClose={() => setUploadOpen(false)}
+                modelName={editModelName}
+                sampleNames={
+                    data
+                        ? (data as any[])
+                              .filter((d: any) => d.name === editModelName)
+                              .reduce((_, c) => c.samples, [])
+                        : []
+                }
+            />
         </Paper>
     );
 };

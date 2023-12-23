@@ -1,23 +1,28 @@
 import { Upload } from '@mui/icons-material';
-import { Button, Container, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 
 export const FileUpload = ({
     onChange,
     fileSelected,
+    label = 'Upload file',
+    accept,
 }: {
     onChange: (e: File) => void;
     fileSelected?: string;
+    label?: string;
+    accept?: string;
 }) => {
     return (
-        <Container sx={{ gap: 2 }}>
+        <Box>
             <Button
                 component='label'
                 variant='contained'
                 startIcon={<Upload />}
             >
-                Upload file
+                {label}
                 <input
                     type='file'
+                    accept={accept}
                     style={{ display: 'none' }}
                     onChange={(e) =>
                         e.target.files && onChange(e.target.files[0])
@@ -29,6 +34,6 @@ export const FileUpload = ({
                     {fileSelected}
                 </Typography>
             )}
-        </Container>
+        </Box>
     );
 };
