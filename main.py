@@ -13,6 +13,7 @@ from fastapi.responses import StreamingResponse, Response
 import numpy as np
 from pydantic import BaseModel
 import scipy
+import torch
 from infer.modules.vc.modules import VC
 from configs.config import Config
 from pathvalidate import validate_filename, ValidationError
@@ -75,7 +76,9 @@ async def generate(req: GenerateRequest):
 
     async with genLock:
         root = os.getenv('weight_root')
+        maybe_load_model()
         wav = s.tts(req.text, speaker_wav=os.path.join(root, req.model, "samples", req.sample), speaker_name=None, language_name=req.language)
+        unload()
         wav = np.array(wav)
         with tempfile.NamedTemporaryFile(suffix=".wav") as f:
             convert_wav(wav, s.output_sample_rate, f.name)
@@ -172,10 +175,23 @@ async def rvc_process(file: UploadFile, model: str = Form()):
             content=open(r.name, "rb"), media_type="audio/ogg"
         )
 
+def unload():
+    global s
+    if s is not None:
+        s.to("cpu")
+    torch.cuda.empty_cache()
+    torch.cuda.ipc_collect()
+    return {"result": "ok"}
 
-manager = ModelManager()
-model_path = os.path.join(manager.output_prefix, "tts_models--multilingual--multi-dataset--xtts_v2")
-s = Synthesizer(
-    model_dir=model_path,
-).to("cuda")
+def maybe_load_model():
+    global s
+    if s is not None:
+        s.to("cuda")
+        return
+    manager = ModelManager()
+    model_path = os.path.join(manager.output_prefix, "tts_models--multilingual--multi-dataset--xtts_v2")
+    s = Synthesizer(
+        model_dir=model_path,
+    ).to("cuda")
+
 app.mount("/", StaticFiles(directory="static", html=True))
