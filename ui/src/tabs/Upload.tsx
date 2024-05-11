@@ -78,12 +78,14 @@ export const UploadDialog = ({
     });
 
     useEffect(() => {
-        setName(modelName);
-        setSamples(sampleNames);
-        setPthFile(undefined);
-        setIndexFile(undefined);
-        setSampleFile(undefined);
-        setProgress(0);
+        if (!props.open) {
+            setName(modelName);
+            setSamples(sampleNames);
+            setPthFile(undefined);
+            setIndexFile(undefined);
+            setSampleFile(undefined);
+            setProgress(0);
+        }
     }, [props.open, modelName, sampleNames]);
 
     const handleUpload = async () => {

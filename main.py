@@ -207,9 +207,9 @@ def upload(model: UploadFile = None, index: UploadFile = None, sample: UploadFil
     if sample is not None:
         with open(model_path / "samples" / sample.filename, "wb") as f:
             shutil.copyfileobj(sample.file, f)
-    
+
     return {"result": "success"}
-    
+
 
 def unload():
     global s

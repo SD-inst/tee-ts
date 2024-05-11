@@ -15,9 +15,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,rw \
     # make shared builder & runtime app user
     addgroup --gid $APP_GID app_grp && \
     useradd -m -u $APP_UID --gid app_grp app && \
+    mkdir -p /home/app/.cache/pip && \
     chown -R $APP_UID:$APP_GID /home/app
 
-RUN chown -R $APP_UID:$APP_GID /home/app
 USER app:app_grp
 COPY --chown=app:app_grp requirements.txt /home/app/tts/
 WORKDIR /home/app/tts
